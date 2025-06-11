@@ -93,6 +93,27 @@
             text-align: center;
             margin-top: 20px;
         }
+        .terms-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+
+            margin-block: 10px;
+        }
+        .terms-container > input {
+            width: 20px;
+            height: 20px;
+
+            border-radius: 10px;
+            border: 0px;
+        }
+        .terms-text {
+            color: #959595;
+        }
+        .terms-text > a {
+            color: #959595;
+        }
     </style>
 </head>
 <body>
@@ -100,12 +121,30 @@
         <main class="left">
             <h1>회원가입</h1>
             <span>아래 정보를 입력해 회원가입을 진행해주세요</span>
+            {% if error %}
+            <div id="error-message" style="color: red; margin: 10px 0;">{{ error }}</div>
+            <script>
+                setTimeout(function() {
+                    var errorDiv = document.getElementById('error-message');
+                    if (errorDiv) errorDiv.style.display = 'none';
+                }, 3000);
+            </script>
+            {% endif %}
             <form action="{% url 'signup' %}" method="post" class="form">
                 {% csrf_token %}
                 <input type="text" name="email" placeholder="이메일">
                 <input type="text" name="username" placeholder="유저네임">
                 <input type="password" name="password" placeholder="비밀번호">
                 <input type="password" name="password_confirm" placeholder="비밀번호 확인">
+                <div class="terms-container">
+                    <input type="checkbox" name="terms" id="terms">
+                    <label for="terms" class="terms-text">
+                        <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ&ab_channel=RickAstley">이용약관</a>
+                        및
+                        <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ&ab_channel=RickAstley">개인정보 처리방침</a>
+                        에 동의합니다.
+                    </label>
+                </div>
                 <button type="submit">눌러서 회원가입</button>
                 <a href="{% url 'login' %}" class="login-link">이미 계정이 있으신가요?</a>
             </form>
@@ -114,5 +153,35 @@
             <img src="https://images.unsplash.com/photo-1560785496-284e257f0bf7?q=80&w=3870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" />
         </main>
     </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const form = document.querySelector('.form');
+            const inputs = form.querySelectorAll('input[type="text"], input[type="password"]');
+            const passwordInput = form.querySelector('input[name="password"]');
+            const passwordConfirmInput = form.querySelector('input[name="password_confirm"]');
+            const emailInput = form.querySelector('input[name="email"]');
+            const checkbox = form.querySelector('input[type="checkbox"]');
+            const submitButton = form.querySelector('button[type="submit"]');
+
+            const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+            function checkFormFilled() {
+                const allFilled = Array.from(inputs).every(input => input.value.trim() !== '');
+                const isEmailValid = regex.test(emailInput.value.trim());
+                const passwordValid = passwordInput.value.trim() === passwordConfirmInput.value.trim();
+                const isChecked = checkbox.checked;
+
+                submitButton.disabled = !(allFilled && isChecked && isEmailValid && passwordValid);
+                submitButton.style.opacity = submitButton.disabled ? 0.5 : 1;
+                submitButton.style.cursor = submitButton.disabled ? 'not-allowed' : 'pointer';
+            }
+
+            inputs.forEach(input => {
+                input.addEventListener('input', checkFormFilled);
+            });
+            checkbox.addEventListener('change', checkFormFilled);
+            checkFormFilled();
+        });
+    </script>
 </body>
 </html>
