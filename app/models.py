@@ -11,7 +11,7 @@ class Room(models.Model):
     name = models.CharField(max_length=100)  # 방 이름
     description = models.TextField(blank=True, null=True)  # 방 설명
     created_at = models.DateTimeField(auto_now_add=True)  # 생성 시간
-    room_users = models.ManyToManyField(RoomUser, related_name='rooms') # 방에 속한 유저들
+    room_users = models.ManyToManyField(RoomUser, related_name='rooms', blank=True) # 방에 속한 유저들
 
     def __str__(self):
         return self.name
