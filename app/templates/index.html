@@ -46,6 +46,40 @@
 
             cursor: pointer;
         }
+
+        .ad-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .ad-left {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .ad-title {
+            background-color: #bababa;
+            border-radius: 4px;
+            color: #fff;
+
+            font-size: 10px;
+            font-weight: 600;
+
+            padding: 2px 4px;
+        }
+
+        .ad {
+            font-size: 12px;
+            color: #717171;
+        }
+
+        .ad-report {
+            font-size: 12px;
+            color: #969696;
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -61,6 +95,13 @@
         <div class="right">
             <img src="{% static 'banner.png' %}" class="banner" />
             <img src="{% static 'banner2.png' %}" class="banner" />
+            <div class="ad-container">
+                <div class="ad-left">
+                    <span class="ad-title">AD</span>
+                    <span class="ad">추영빈애드컴퍼니</span>
+                </div>
+                <span class="ad-report">광고 신고하기</span>
+            </div>
         </div>
     </main>
 </body>
