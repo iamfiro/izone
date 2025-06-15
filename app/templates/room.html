@@ -1,41 +1,290 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html>
   <head>
     <title>{{ room.name }}</title>
+    <link rel="stylesheet" href="{% static 'css/global.css' %}">
     <style>
-      body {
-        font-family: Arial, sans-serif;
-        background-color: #ffffff; /* 하얀색 배경 */
-        color: #333333; /* 기본 텍스트 색상 */
-        margin: 0;
-        padding: 0;
-      }
       header {
-        background-color: #5339f9; /* 포인트 색상 */
-        color: #ffffff;
+        width: 100%;
+        height: 80px;
+
+        padding: 0 20px;
+
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .header-left {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .title {
+        font-size: 20px;
+        font-weight: 500;
+      }
+
+      .description {
+        font-size: 16px;
+        font-weight: 400;
+        color: #666;
+      }
+
+      .quit {
+        background-color: #f93c39;
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 999px;
+        cursor: pointer;
+        font-size: 16px;
+      }
+
+      .room-main {
+        width: 100%;
+        height: 100%;
+        display: flex;
+      }
+
+      .room-left {
+        width: calc(100% - 450px);
+        height: 100%;
+        padding: 30px;
+
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+      }
+
+      .cam {
+        background-color: red;
+        width: 200px;
+        aspect-ratio: 12/9;
+        border-radius: 18px;
+      }
+
+      .room-right {
+        width: 450px;
+        height: 100%;
+      }
+
+      .room-timer-container {
+        width: calc(100% - 30px);
+        height: 170px;
+
+        margin: 15px;
+
+        border-radius: 18px;
+        border: 1px solid #e0e0e0;
+
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 5px;
+      }
+
+      .room-timer-container > h2 {
+        font-size: 50px;
+        font-weight: 500;
+      }
+
+      .room-timer-container > span {
+        font-size: 22px;
+        font-weight: 400;
+        color: #808080;
+      }
+
+      .room-leaderboard-container {
+        width: calc(100% - 30px);
+        height: 170px;
+
+        margin: 15px;
+
+        border-radius: 18px;
+        border: 1px solid #e0e0e0;
+
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+
         padding: 20px;
-        text-align: center;
       }
-      h1 {
-        color: #5339f9; /* 포인트 색상 */
+
+      .room-leaderboard-container > span {
+        font-size: 22px;
+        font-weight: 400;
+        color: #808080;
       }
-      .container {
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 20px;
-      }
-      p {
-        line-height: 1.6;
+
+      .room-leaderboard-list {
+        width: 100%;
+        height: 100%;
+
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
       }
     </style>
   </head>
   <body>
-    <header>
-      <h1>{{ room.name }}</h1>
+    <header class="header">
+      <div class="header-left">
+        <h1 class="title">{{ room.name }}</h1>
+        <p class="description">{{ room.description }}</p>
+      </div>
+      <a href="/" class="quit">방 나가기</a>
     </header>
-    <div class="container">
-      <p>{{ room.description }}</p>
-      <p>생성 시간: {{ room.created_at }}</p>
-    </div>
+    <main class="room-main">
+      <div class="room-left">
+        <video class="cam" id="cam" autoplay playsinline></video>
+        <span id="status">준비중</span>
+        <div class="user-list">
+          <div class="user-item">
+            <span class="user-name">추영빈</span>
+            <span class="user-time">00:00</span>
+          </div>
+        </div>
+      </div>
+      <div class="room-right">
+        <div class="room-timer-container">
+          <span>타이머</span>
+          <h2 id="timer">00:00</h2>
+        </div>
+        <div class="room-leaderboard-container">
+          <span>랭킹</span>
+          <div class="room-leaderboard-list">
+            <div class="room-leaderboard-item">
+              
+            </div>
+          </div>
+      </div>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.16.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
+    <script src="{% static 'js/webcam.js' %}"></script>
+    <script>
+      // 유저 정보 확인
+      const userId = "{{ user.id|default:'' }}";
+      const userName = "{{ user.username|default:'' }}";
+      const roomId = "{{ room.id|default:'' }}";
+
+      console.log("User Info:", { userId, userName, roomId });
+
+      if (!userId || !userName || !roomId) {
+        console.error("필수 정보가 누락되었습니다:", { userId, userName, roomId });
+        alert("로그인이 필요하거나 방 정보가 올바르지 않습니다.");
+        window.location.href = "/";
+      } else {
+        // WebSocket 연결
+        const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
+        const wsUrl = `${wsScheme}://${window.location.host}/ws/room/${roomId}/?user_id=${userId}&user_name=${encodeURIComponent(userName)}`;
+        
+        console.log("WebSocket URL:", wsUrl);
+        
+        const socket = new WebSocket(wsUrl);
+        window.socket = socket;
+
+        socket.onopen = function() {
+          console.log("WebSocket 연결됨");
+          document.getElementById('status').textContent = '연결됨';
+        };
+
+        socket.onmessage = function(event) {
+          const data = JSON.parse(event.data);
+          console.log("서버 메시지:", data);
+
+          switch(data.type) {
+            case 'user_list':
+              // 초기 유저 리스트 처리
+              console.log("유저 목록 수신:", data.users);
+              Object.entries(data.users).forEach(([userId, userData]) => {
+                if (userId !== window.userId) {
+                  const timerElement = document.createElement('div');
+                  timerElement.className = 'user-timer';
+                  timerElement.innerHTML = `
+                    <span class="user-name">${userData.user_name}</span>
+                    <span class="timer">00:00</span>
+                  `;
+                  document.querySelector('.user-list').appendChild(timerElement);
+                  
+                  // timerManager가 있다면 사용
+                  if (window.timerManager) {
+                    const timer = window.timerManager.addTimer(
+                      userId,
+                      userData.user_name,
+                      timerElement.querySelector('.timer')
+                    );
+                    
+                    if (userData.present) {
+                      timer.startTimer();
+                    }
+                  }
+                }
+              });
+              break;
+
+            case 'user_joined':
+              // 새 유저 입장 처리
+              console.log("새 유저 입장:", data);
+              const timerElement = document.createElement('div');
+              timerElement.className = 'user-timer';
+              timerElement.innerHTML = `
+                  <span class="user-name">${data.user_name}</span>
+                  <span class="timer">00:00</span>
+              `;
+              document.querySelector('.user-list').appendChild(timerElement);
+              
+              if (window.timerManager) {
+                window.timerManager.addTimer(
+                    data.user_id,
+                    data.user_name,
+                    timerElement.querySelector('.timer')
+                );
+              }
+              break;
+
+            case 'user_left':
+              // 유저 퇴장 처리
+              console.log("유저 퇴장:", data);
+              if (window.timerManager) {
+                window.timerManager.removeTimer(data.user_id);
+              }
+              break;
+
+            case 'presence_broadcast':
+              // 유저 presence 상태 업데이트
+              console.log("Presence 업데이트:", data);
+              if (window.timerManager) {
+                const timer = window.timerManager.getTimer(data.user_id);
+                if (timer) {
+                    if (data.present) {
+                        timer.resumeTimer();
+                    } else {
+                        timer.pauseTimer();
+                    }
+                }
+              }
+              break;
+          }
+        };
+
+        socket.onerror = function(error) {
+          console.error("WebSocket 오류:", error);
+          document.getElementById('status').textContent = '연결 오류';
+        };
+
+        socket.onclose = function(event) {
+          console.log("WebSocket 연결 종료:", event.code, event.reason);
+          document.getElementById('status').textContent = '연결 끊김';
+        };
+      }
+    </script>
   </body>
 </html>

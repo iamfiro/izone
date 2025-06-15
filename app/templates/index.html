@@ -90,7 +90,7 @@
         <div class="left">
             <h1 class="title">방 리스트</h1>
             {% for room in rooms %}
-                {% include "components/room_card.html" with room_name=room.name room_description=room.description participant_count=room.room_users.count created_at=room.created_at %}
+                {% include "components/room_card.html" with room_id=room.id room_name=room.name room_description=room.description participant_count=room.room_users.count created_at=room.created_at %}
             {% endfor %}
         </div>
         <div class="right">
