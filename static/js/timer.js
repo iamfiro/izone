@@ -5,44 +5,30 @@ class UserTimer {
         this.timer = null;
         this.seconds = 0;
         this.timerText = timerText;
-        this.present = true;
+        this.present = false;
     }
 
     startTimer() {
         if (this.timer) return;
+        this.present = true;
         this.timer = setInterval(() => {
             this.seconds++;
             this.updateTimerDisplay();
-            this.sendPresenceUpdate();
         }, 1000);
     }
 
     pauseTimer() {
-        clearInterval(this.timer);
-        this.timer = null;
+        if (this.timer) {
+            clearInterval(this.timer);
+            this.timer = null;
+        }
         this.present = false;
-        this.sendPresenceUpdate();
     }
 
     resumeTimer() {
-        this.present = true;
-        this.startTimer();
-        this.sendPresenceUpdate();
-    }
-
-    sendPresenceUpdate() {
-        if (window.socket && window.socket.readyState === WebSocket.OPEN) {
-            window.socket.send(JSON.stringify({
-                type: 'presence_update',
-                user_id: this.userId,
-                present: this.present,
-                timer: this.seconds
-            }));
+        if (!this.timer) {
+            this.startTimer();
         }
-    }
-
-    getTimer() {
-        return this.timer;
     }
 
     updateTimerDisplay() {
@@ -73,6 +59,10 @@ class TimerManager {
             timer.pauseTimer();
             this.timers.delete(userId);
         }
+    }
+
+    getAllTimers() {
+        return Array.from(this.timers.values());
     }
 }
 

@@ -87,15 +87,17 @@ async function detectPerson() {
 
         personDetectedRecently = false;
 
-        stopTimer(); // 사람 없으면 즉시 타이머 정지
-        // presence 상태 업데이트
-        if (window.socket && window.socket.readyState === WebSocket.OPEN) {
-            window.socket.send(JSON.stringify({
-                type: 'presence_update',
-                user_id: window.userId,
-                present: false,
-                timer: seconds
-            }));
+        if (timerInterval) {
+            stopTimer(); // 사람 없으면 즉시 타이머 정지
+            // presence 상태 업데이트
+            if (window.socket && window.socket.readyState === WebSocket.OPEN) {
+                window.socket.send(JSON.stringify({
+                    type: 'presence_update',
+                    user_id: window.userId,
+                    present: false,
+                    timer: seconds
+                }));
+            }
         }
     }
 

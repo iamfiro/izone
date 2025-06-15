@@ -168,12 +168,18 @@
     </main>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.16.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
+    <script src="{% static 'js/timer.js' %}"></script>
     <script src="{% static 'js/webcam.js' %}"></script>
     <script>
       // 유저 정보 확인
       const userId = "{{ user.id|default:'' }}";
       const userName = "{{ user.username|default:'' }}";
       const roomId = "{{ room.id|default:'' }}";
+      
+      // 전역 변수로 설정
+      window.userId = userId;
+      window.userName = userName;
+      window.roomId = roomId;
 
       console.log("User Info:", { userId, userName, roomId });
 
@@ -204,6 +210,11 @@
             case 'user_list':
               // 초기 유저 리스트 처리
               console.log("유저 목록 수신:", data.users);
+              
+              // 기존 유저 리스트 초기화 (하드코딩된 요소 제거)
+              const userList = document.querySelector('.user-list');
+              userList.innerHTML = '';
+              
               Object.entries(data.users).forEach(([userId, userData]) => {
                 if (userId !== window.userId) {
                   const timerElement = document.createElement('div');
@@ -212,9 +223,9 @@
                     <span class="user-name">${userData.user_name}</span>
                     <span class="timer">00:00</span>
                   `;
-                  document.querySelector('.user-list').appendChild(timerElement);
+                  userList.appendChild(timerElement);
                   
-                  // timerManager가 있다면 사용
+                  // TimerManager를 사용하여 타이머 추가
                   if (window.timerManager) {
                     const timer = window.timerManager.addTimer(
                       userId,
@@ -222,6 +233,11 @@
                       timerElement.querySelector('.timer')
                     );
                     
+                    // 초기 시간 설정
+                    timer.seconds = userData.timer || 0;
+                    timer.updateTimerDisplay();
+                    
+                    // 상태에 따라 타이머 시작/중지
                     if (userData.present) {
                       timer.startTimer();
                     }
@@ -256,6 +272,15 @@
               if (window.timerManager) {
                 window.timerManager.removeTimer(data.user_id);
               }
+              
+              // DOM에서 해당 유저 요소 제거
+              const userTimers = document.querySelectorAll('.user-timer');
+              userTimers.forEach(element => {
+                const userName = element.querySelector('.user-name').textContent;
+                if (userName === data.user_name) {
+                  element.remove();
+                }
+              });
               break;
 
             case 'presence_broadcast':
@@ -264,6 +289,9 @@
               if (window.timerManager) {
                 const timer = window.timerManager.getTimer(data.user_id);
                 if (timer) {
+                    timer.seconds = data.timer || 0;
+                    timer.updateTimerDisplay();
+                    
                     if (data.present) {
                         timer.resumeTimer();
                     } else {
