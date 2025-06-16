@@ -1,3 +1,5 @@
+{% load static %}
+
 <style>
     header {
         width: 100%;
@@ -34,10 +36,14 @@
         display: flex;
         gap: 20px;
     }
+
+    .logo {
+        height: 50px;
+    }
 </style>
 
 <header>
-    <h1>로고</h1>
+    <img src="{% static 'logo.png' %}" alt="logo" class="logo">
 
     <div class="header_right">
         {% if user.is_authenticated %}

@@ -233,13 +233,18 @@
                       timerElement.querySelector('.timer')
                     );
                     
-                    // 초기 시간 설정
-                    timer.seconds = userData.timer || 0;
+                    // 기존 사용자의 누적 시간 설정
+                    timer.seconds = userData.timer + 1 || 0;
                     timer.updateTimerDisplay();
+                    
+                    console.log(`사용자 ${userData.user_name}의 시간 설정: ${timer.seconds}초`);
                     
                     // 상태에 따라 타이머 시작/중지
                     if (userData.present) {
-                      timer.startTimer();
+                      timer.resumeTimer();
+                      console.log(`사용자 ${userData.user_name} 타이머 재개`);
+                    } else {
+                      console.log(`사용자 ${userData.user_name} 타이머 정지 상태`);
                     }
                   }
                 }
@@ -267,36 +272,50 @@
               break;
 
             case 'user_left':
-              // 유저 퇴장 처리
+              // 유저 완전 퇴장 처리
               console.log("유저 퇴장:", data);
+              
               if (window.timerManager) {
+                // TimerManager에서 완전히 제거
                 window.timerManager.removeTimer(data.user_id);
+                console.log(`사용자 ${data.user_name} 타이머 완전 제거됨`);
               }
               
-              // DOM에서 해당 유저 요소 제거
+              // DOM에서 해당 유저 요소 완전 제거
               const userTimers = document.querySelectorAll('.user-timer');
               userTimers.forEach(element => {
                 const userName = element.querySelector('.user-name').textContent;
                 if (userName === data.user_name) {
                   element.remove();
+                  console.log(`사용자 ${data.user_name} UI 요소 제거됨`);
                 }
               });
+              
+              // 완전 제거 로그
+              if (data.final_removal) {
+                console.log(`사용자 ${data.user_name}이 방에서 완전히 퇴장했습니다.`);
+              }
               break;
 
             case 'presence_broadcast':
-              // 유저 presence 상태 업데이트
+              // 유저 presence 상태 업데이트 (연결된 사용자만)
               console.log("Presence 업데이트:", data);
               if (window.timerManager) {
                 const timer = window.timerManager.getTimer(data.user_id);
                 if (timer) {
+                    // 서버에서 받은 정확한 시간으로 업데이트
                     timer.seconds = data.timer || 0;
                     timer.updateTimerDisplay();
+                    
+                    console.log(`사용자 ID ${data.user_id}의 시간 업데이트: ${timer.seconds}초, Present: ${data.present}`);
                     
                     if (data.present) {
                         timer.resumeTimer();
                     } else {
                         timer.pauseTimer();
                     }
+                } else {
+                    console.warn(`사용자 ID ${data.user_id}의 타이머를 찾을 수 없습니다.`);
                 }
               }
               break;
