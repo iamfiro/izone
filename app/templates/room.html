@@ -245,11 +245,6 @@
         border-left: 4px solid transparent;
       }
 
-      .leaderboard-item:hover {
-        transform: translateX(5px);
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-      }
-
       .leaderboard-item.rank-1 {
         background: linear-gradient(135deg, #ffd700, #ffed4a);
         border-left-color: #ffd700;
@@ -376,6 +371,33 @@
       window.userName = userName;
       window.roomId = roomId;
 
+      // 연결 상태 관리
+      let isConnected = false;
+      let reconnectAttempts = 0;
+      const maxReconnectAttempts = 5;
+      let reconnectTimeout = null;
+
+      // 브라우저 종료/새로고침 감지
+      window.addEventListener('beforeunload', function(e) {
+        if (window.socket && window.socket.readyState === WebSocket.OPEN) {
+          // 동기적으로 연결 종료 시도
+          window.socket.close(1000, 'Page unload');
+        }
+      });
+
+      // 페이지 숨김/보임 감지 (탭 전환, 최소화 등)
+      document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+          console.log('페이지가 숨겨짐 (탭 전환, 최소화 등)');
+        } else {
+          console.log('페이지가 다시 보임');
+          // 연결이 끊어진 경우 재연결 시도
+          if (!isConnected) {
+            connectWebSocket();
+          }
+        }
+      });
+
       // 리더보드 업데이트 함수
       function updateLeaderboard() {
         if (!window.timerManager) return;
@@ -411,16 +433,20 @@
         });
       }
 
-      // 리더보드 주기적 업데이트
-      setInterval(updateLeaderboard, 1000);
+      // WebSocket 연결 함수
+      function connectWebSocket() {
+        if (!userId || !userName || !roomId) {
+          console.error("필수 정보가 누락되었습니다:", { userId, userName, roomId });
+          alert("로그인이 필요하거나 방 정보가 올바르지 않습니다.");
+          window.location.href = "/";
+          return;
+        }
 
-      console.log("User Info:", { userId, userName, roomId });
+        // 기존 연결이 있다면 정리
+        if (window.socket) {
+          window.socket.close();
+        }
 
-      if (!userId || !userName || !roomId) {
-        console.error("필수 정보가 누락되었습니다:", { userId, userName, roomId });
-        alert("로그인이 필요하거나 방 정보가 올바르지 않습니다.");
-        window.location.href = "/";
-      } else {
         // WebSocket 연결
         const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
         const wsUrl = `${wsScheme}://${window.location.host}/ws/room/${roomId}/?user_id=${userId}&user_name=${encodeURIComponent(userName)}`;
@@ -433,10 +459,28 @@
         socket.onopen = function() {
           console.log("WebSocket 연결됨");
           document.getElementById('status').textContent = '연결됨';
+          isConnected = true;
+          reconnectAttempts = 0;
+          
+          // 재연결 타임아웃 클리어
+          if (reconnectTimeout) {
+            clearTimeout(reconnectTimeout);
+            reconnectTimeout = null;
+          }
         };
 
         socket.onmessage = function(event) {
           const data = JSON.parse(event.data);
+          
+          // 하트비트 핑 응답
+          if (data.type === 'ping') {
+            socket.send(JSON.stringify({
+              type: 'pong',
+              timestamp: data.timestamp
+            }));
+            return;
+          }
+          
           console.log("서버 메시지:", data);
 
           switch(data.type) {
@@ -532,10 +576,9 @@
                 }
               });
               
-              // 완전 제거 로그
-              if (data.final_removal) {
-                console.log(`사용자 ${data.user_name}이 방에서 완전히 퇴장했습니다.`);
-              }
+              // 퇴장 이유별 로그
+              const reason = data.reason === 'inactive' ? '비활성' : '연결 해제';
+              console.log(`사용자 ${data.user_name}이 방에서 완전히 퇴장했습니다. (이유: ${reason})`);
               
               // 리더보드 업데이트
               updateLeaderboard();
@@ -569,13 +612,37 @@
         socket.onerror = function(error) {
           console.error("WebSocket 오류:", error);
           document.getElementById('status').textContent = '연결 오류';
+          isConnected = false;
         };
 
         socket.onclose = function(event) {
           console.log("WebSocket 연결 종료:", event.code, event.reason);
           document.getElementById('status').textContent = '연결 끊김';
+          isConnected = false;
+          
+          // 자동 재연결 시도 (페이지 언로드가 아닌 경우)
+          if (event.code !== 1000 && reconnectAttempts < maxReconnectAttempts) {
+            reconnectAttempts++;
+            const delay = Math.min(1000 * Math.pow(2, reconnectAttempts - 1), 30000); // 지수 백오프
+            console.log(`${delay}ms 후 재연결 시도 (${reconnectAttempts}/${maxReconnectAttempts})`);
+            
+            reconnectTimeout = setTimeout(() => {
+              console.log(`재연결 시도 ${reconnectAttempts}`);
+              document.getElementById('status').textContent = `재연결 중... (${reconnectAttempts}/${maxReconnectAttempts})`;
+              connectWebSocket();
+            }, delay);
+          } else if (reconnectAttempts >= maxReconnectAttempts) {
+            document.getElementById('status').textContent = '연결 실패 - 새로고침 해주세요';
+            console.error('최대 재연결 시도 횟수 초과');
+          }
         };
       }
+
+      // 리더보드 주기적 업데이트
+      setInterval(updateLeaderboard, 1000);
+
+      // 초기 연결
+      connectWebSocket();
     </script>
   </body>
 </html>
