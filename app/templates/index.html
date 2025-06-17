@@ -1,0 +1,109 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="{% static 'css/global.css' %}">
+    <style>
+        .main {
+            width: 100%;
+
+            display: flex;
+            gap: 20px;
+
+            padding: 30px 20px 0 20px;
+        }
+
+        .title {
+            font-size: 18px;
+            font-weight: 500;
+
+            margin-bottom: 20px;
+
+            color: #717171;
+        }
+
+        .left {
+            width: calc(100% - 420px);
+        }
+
+        .right {
+            width: 420px;
+
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .banner {
+            width: 100%;
+            border-radius: 14px;
+
+            border: 1px solid #d2d2d2;
+
+            cursor: pointer;
+        }
+
+        .ad-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .ad-left {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .ad-title {
+            background-color: #bababa;
+            border-radius: 4px;
+            color: #fff;
+
+            font-size: 10px;
+            font-weight: 600;
+
+            padding: 2px 4px;
+        }
+
+        .ad {
+            font-size: 12px;
+            color: #717171;
+        }
+
+        .ad-report {
+            font-size: 12px;
+            color: #969696;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    {% include "components/header.html" with create_room=True %}
+
+    <main class="main">
+        <div class="left">
+            <h1 class="title">방 리스트</h1>
+            {% for room in rooms %}
+                {% include "components/room_card.html" with room_id=room.id room_name=room.name room_description=room.description participant_count=room.room_users.count created_at=room.created_at %}
+            {% endfor %}
+        </div>
+        <div class="right">
+            <img src="{% static 'banner.png' %}" class="banner" />
+            <img src="{% static 'banner2.png' %}" class="banner" />
+            <div class="ad-container">
+                <div class="ad-left">
+                    <span class="ad-title">AD</span>
+                    <span class="ad">추영빈애드컴퍼니</span>
+                </div>
+                <span class="ad-report">광고 신고하기</span>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

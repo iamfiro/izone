@@ -1,0 +1,874 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>{{ room.name }}</title>
+    <link rel="stylesheet" href="{% static 'css/global.css' %}">
+    <style>
+      :root {
+        --primary-color: #5339f9;
+        --inactive-color: #9e9e9e;
+        --background-light: #f8f9fa;
+        --text-dark: #333;
+        --text-light: #666;
+        --border-color: #e0e0e0;
+      }
+
+      header {
+        width: 100%;
+        height: 80px;
+        padding: 0 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: white;
+      }
+
+      .header-left {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .title {
+        font-size: 20px;
+        font-weight: 500;
+        color: var(--text-dark);
+      }
+
+      .description {
+        font-size: 16px;
+        font-weight: 400;
+        color: var(--text-light);
+      }
+
+      .quit {
+        background-color: #f93c39;
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 999px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: all 0.3s ease;
+      }
+
+      .quit:hover {
+        background-color: #e53935;
+        transform: translateY(-2px);
+      }
+
+      .room-main {
+        width: 100%;
+        height: calc(100vh - 80px);
+        display: flex;
+      }
+
+      .room-left {
+        width: calc(100% - 450px);
+        height: 100%;
+        padding: 30px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+      }
+
+      .cam {
+        background: linear-gradient(135deg, var(--primary-color), #7c4dff);
+        width: 300px;
+        aspect-ratio: 12/9;
+        border-radius: 18px;
+      }
+
+      #status {
+        font-size: 18px;
+        font-weight: 500;
+        padding: 8px 16px;
+        border-radius: 20px;
+        background: white;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        color: var(--text-dark);
+      }
+
+      .user-list {
+        width: 100%;
+        max-width: 500px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .user-timer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 20px;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+      }
+
+      .user-timer.active {
+        background: linear-gradient(135deg, #fff, #f8f6ff);
+        transform: translateX(5px);
+      }
+
+      .user-timer.inactive {
+        background: #f5f5f5;
+        opacity: 0.7;
+      }
+
+      .user-name {
+        font-size: 16px;
+        font-weight: 500;
+        color: var(--text-dark);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .user-name::before {
+        content: "👤";
+        font-size: 14px;
+      }
+
+      .user-timer.active .user-name {
+        color: var(--primary-color);
+      }
+
+      .user-timer.inactive .user-name {
+        color: var(--inactive-color);
+      }
+
+      .timer {
+        font-size: 18px;
+        font-weight: 600;
+        font-family: 'Courier New', monospace;
+        color: var(--text-dark);
+        background: var(--background-light);
+        padding: 6px 12px;
+        border-radius: 8px;
+      }
+
+      .user-timer.active .timer {
+        color: var(--primary-color);
+        background: #f0edff;
+      }
+
+      .user-timer.inactive .timer {
+        color: var(--inactive-color);
+        background: #f0f0f0;
+      }
+
+      .room-right {
+        width: 450px;
+        height: 100%;
+        background: white;
+      }
+
+      .room-timer-container {
+        width: calc(100% - 30px);
+        height: 170px;
+        margin: 15px;
+        border-radius: 18px;
+        background: linear-gradient(135deg, var(--primary-color), #7c4dff);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 5px;
+        color: white;
+      }
+
+      .room-timer-container > h2 {
+        font-size: 50px;
+        font-weight: 600;
+        font-family: 'Courier New', monospace;
+        margin: 0;
+      }
+
+      .room-timer-container > span {
+        font-size: 22px;
+        font-weight: 400;
+        opacity: 0.9;
+      }
+
+      .room-leaderboard-container {
+        width: calc(100% - 30px);
+        height: calc(100% - 200px);
+        margin: 15px;
+        border-radius: 18px;
+        border: 1px solid var(--border-color);
+        background: white;
+        display: flex;
+        flex-direction: column;
+        padding: 20px;
+      }
+
+      .leaderboard-title {
+        font-size: 22px;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 20px;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+
+      .leaderboard-title::before {
+        content: "🏆";
+        font-size: 20px;
+      }
+
+      .room-leaderboard-list {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        overflow-y: auto;
+      }
+
+      .leaderboard-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px;
+        background: var(--background-light);
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        border-left: 4px solid transparent;
+      }
+
+      .leaderboard-item:hover {
+        transform: translateX(5px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      }
+
+      .leaderboard-item.rank-1 {
+        background: linear-gradient(135deg, #ffd700, #ffed4a);
+        border-left-color: #ffd700;
+      }
+
+      .leaderboard-item.rank-2 {
+        background: linear-gradient(135deg, #c0c0c0, #e2e8f0);
+        border-left-color: #c0c0c0;
+      }
+
+      .leaderboard-item.rank-3 {
+        background: linear-gradient(135deg, #cd7f32, #d69e2e);
+        border-left-color: #cd7f32;
+      }
+
+      .rank-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .rank-number {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: var(--primary-color);
+        color: white;
+        font-weight: 600;
+        font-size: 14px;
+      }
+
+      .leaderboard-item.rank-1 .rank-number {
+        background: #ffd700;
+        color: #333;
+      }
+
+      .leaderboard-item.rank-2 .rank-number {
+        background: #c0c0c0;
+        color: #333;
+      }
+
+      .leaderboard-item.rank-3 .rank-number {
+        background: #cd7f32;
+        color: white;
+      }
+
+      /* 현재 사용자 스타일 (노란색) */
+      .leaderboard-item.current-user {
+        background: linear-gradient(135deg, #ffd700, #ffed4a) !important;
+        border-left-color: #ffd700 !important;
+        box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+      }
+
+      .leaderboard-item.current-user .rank-number {
+        background: #ffd700 !important;
+        color: #333 !important;
+      }
+
+      .leaderboard-item.current-user .player-name {
+        font-weight: 600;
+        color: #333 !important;
+      }
+
+      .leaderboard-item.current-user .player-time {
+        color: #333 !important;
+        font-weight: 700;
+      }
+
+      /* 다른 사용자 스타일 (회색) */
+      .leaderboard-item.other-user {
+        background: linear-gradient(135deg, #e2e8f0, #cbd5e0) !important;
+        border-left-color: #94a3b8 !important;
+      }
+
+      .leaderboard-item.other-user .rank-number {
+        background: #94a3b8 !important;
+        color: white !important;
+      }
+
+      .leaderboard-item.other-user .player-name {
+        color: #64748b !important;
+      }
+
+      .leaderboard-item.other-user .player-time {
+        color: #64748b !important;
+      }
+
+      .player-name {
+        font-size: 16px;
+        font-weight: 500;
+        color: var(--text-dark);
+      }
+
+      .player-time {
+        font-size: 16px;
+        font-weight: 600;
+        font-family: 'Courier New', monospace;
+        color: var(--primary-color);
+      }
+
+      .empty-leaderboard {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        color: var(--text-light);
+        font-size: 16px;
+      }
+
+      .empty-leaderboard::before {
+        content: "📊";
+        font-size: 48px;
+        margin-bottom: 16px;
+        opacity: 0.5;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="header">
+      <div class="header-left">
+        <h1 class="title">{{ room.name }}</h1>
+        <p class="description">{{ room.description }}</p>
+      </div>
+      <a href="/" class="quit">방 나가기</a>
+    </header>
+    <main class="room-main">
+      <div class="room-left">
+        <video class="cam" id="cam" autoplay playsinline></video>
+        <span id="status">준비중</span>
+        <div class="user-list" id="user-list">
+          <!-- 유저 타이머들이 여기에 동적으로 추가됩니다 -->
+        </div>
+      </div>
+      <div class="room-right">
+        <div class="room-timer-container">
+          <span>타이머</span>
+          <h2 id="timer">00:00</h2>
+        </div>
+        <div class="room-leaderboard-container">
+          <div class="leaderboard-title">랭킹</div>
+          <div class="room-leaderboard-list" id="leaderboard-list">
+            <div class="empty-leaderboard">
+              아직 참가자가 없습니다
+            </div>
+          </div>
+        </div>
+      </div>
+      <button>놀리기</button>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.16.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-confetti@latest/dist/js-confetti.browser.js"></script>
+    <script src="{% static 'js/timer.js' %}"></script>
+    <script src="{% static 'js/webcam.js' %}"></script>
+    <script>
+      const jsConfetti = new JSConfetti()
+      // 유저 정보 확인
+      const userId = "{{ user.id|default:'' }}";
+      const userName = "{{ user.username|default:'' }}";
+      const roomId = "{{ room.id|default:'' }}";
+      
+      // 전역 변수로 설정
+      window.userId = userId;
+      window.userName = userName;
+      window.roomId = roomId;
+
+      const confettiButton = document.querySelector('button');
+
+      // 리더보드 업데이트 함수
+      function updateLeaderboard() {
+        if (!window.timerManager) return;
+        
+        const leaderboardList = document.getElementById('leaderboard-list');
+        const timers = window.timerManager.getAllTimers();
+        
+        // 현재 사용자의 타이머 정보 추가
+        const allTimers = [...timers];
+        
+        // 현재 사용자가 타이머 목록에 없으면 추가
+        const currentUserExists = timers.some(timer => timer.userId === window.userId);
+        if (!currentUserExists && window.userId && window.userName) {
+          // 현재 사용자의 시간을 메인 타이머에서 가져오기
+          const mainTimerElement = document.getElementById('timer');
+          const mainTimerText = mainTimerElement ? mainTimerElement.textContent : '00:00';
+          const [minutes, seconds] = mainTimerText.split(':').map(Number);
+          const totalSeconds = (minutes * 60) + seconds;
+          
+          allTimers.push({
+            userId: window.userId,
+            userName: window.userName,
+            seconds: totalSeconds,
+            isCurrentUser: true
+          });
+        } else {
+          // 기존 타이머에 현재 사용자 표시 추가
+          allTimers.forEach(timer => {
+            timer.isCurrentUser = timer.userId === window.userId;
+          });
+        }
+        
+        if (allTimers.length === 0) {
+          leaderboardList.innerHTML = '<div class="empty-leaderboard">아직 참가자가 없습니다</div>';
+          return;
+        }
+        
+        // 시간 순으로 정렬 (내림차순)
+        const sortedTimers = allTimers.sort((a, b) => b.seconds - a.seconds);
+        
+        leaderboardList.innerHTML = '';
+        sortedTimers.forEach((timer, index) => {
+          const rank = index + 1;
+          const minutes = Math.floor(timer.seconds / 60);
+          const seconds = timer.seconds % 60;
+          const timeString = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+          
+          const leaderboardItem = document.createElement('div');
+          const isCurrentUser = timer.isCurrentUser || timer.userId === window.userId;
+          
+          // 현재 사용자와 다른 사용자에 따라 다른 클래스 적용
+          let itemClass = `leaderboard-item rank-${rank <= 3 ? rank : 'other'}`;
+          if (isCurrentUser) {
+            itemClass += ' current-user';
+          } else {
+            itemClass += ' other-user';
+          }
+          
+          leaderboardItem.className = itemClass;
+          leaderboardItem.innerHTML = `
+            <div class="rank-info">
+              <div class="rank-number">${rank}</div>
+              <div class="player-name">${timer.userName}${isCurrentUser ? ' (나)' : ''}</div>
+            </div>
+            <div class="player-time">${timeString}</div>
+          `;
+          leaderboardList.appendChild(leaderboardItem);
+        });
+      }
+
+      // 리더보드 주기적 업데이트
+      setInterval(updateLeaderboard, 1000);
+
+      console.log("User Info:", { userId, userName, roomId });
+
+      if (!userId || !userName || !roomId) {
+        console.error("필수 정보가 누락되었습니다:", { userId, userName, roomId });
+        alert("로그인이 필요하거나 방 정보가 올바르지 않습니다.");
+        window.location.href = "/";
+      } else {
+        // WebSocket 연결
+        const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
+        const wsUrl = `${wsScheme}://${window.location.host}/ws/room/${roomId}/?user_id=${userId}&user_name=${encodeURIComponent(userName)}`;
+        
+        console.log("WebSocket URL:", wsUrl);
+        
+        const socket = new WebSocket(wsUrl);
+        window.socket = socket;
+
+        socket.onopen = function() {
+          console.log("WebSocket 연결됨");
+          document.getElementById('status').textContent = '연결됨';
+        };
+
+        socket.onmessage = function(event) {
+          const data = JSON.parse(event.data);
+          console.log("서버 메시지:", data);
+
+          switch(data.type) {
+            case 'user_list':
+              // 초기 유저 리스트 처리
+              console.log("유저 목록 수신:", data.users);
+              
+              // 기존 유저 리스트 초기화
+              const userList = document.getElementById('user-list');
+              userList.innerHTML = '';
+              
+              Object.entries(data.users).forEach(([userId, userData]) => {
+                if (userId !== window.userId) {
+                  const timerElement = document.createElement('div');
+                  timerElement.className = 'user-timer';
+                  timerElement.innerHTML = `
+                    <div class="user-name">${userData.user_name}</div>
+                    <div class="timer">00:00</div>
+                  `;
+                  userList.appendChild(timerElement);
+                  
+                  // TimerManager를 사용하여 타이머 추가
+                  if (window.timerManager) {
+                    const timer = window.timerManager.addTimer(
+                      userId,
+                      userData.user_name,
+                      timerElement.querySelector('.timer'),
+                      timerElement
+                    );
+                    
+                    // 기존 사용자의 누적 시간 설정
+                    timer.seconds = userData.timer || 0;
+                    timer.updateTimerDisplay();
+                    
+                    console.log(`사용자 ${userData.user_name}의 시간 설정: ${timer.seconds}초`);
+                    
+                    // 상태에 따라 타이머 시작/중지
+                    if (userData.present) {
+                      timer.resumeTimer();
+                      console.log(`사용자 ${userData.user_name} 타이머 재개`);
+                    } else {
+                      console.log(`사용자 ${userData.user_name} 타이머 정지 상태`);
+                    }
+                  }
+                }
+              });
+              
+              // 리더보드 업데이트
+              updateLeaderboard();
+              break;
+
+            case 'user_joined':
+              // 새 유저 입장 처리
+              console.log("새 유저 입장:", data);
+              const timerElement = document.createElement('div');
+              timerElement.className = 'user-timer';
+              timerElement.innerHTML = `
+                  <div class="user-name">${data.user_name}</div>
+                  <div class="timer">00:00</div>
+              `;
+              document.getElementById('user-list').appendChild(timerElement);
+              
+              if (window.timerManager) {
+                window.timerManager.addTimer(
+                    data.user_id,
+                    data.user_name,
+                    timerElement.querySelector('.timer'),
+                    timerElement
+                );
+              }
+              
+              // 리더보드 업데이트
+              updateLeaderboard();
+              break;
+
+            case 'user_left':
+              // 유저 완전 퇴장 처리
+              console.log("유저 퇴장:", data);
+              
+              if (window.timerManager) {
+                // TimerManager에서 완전히 제거
+                window.timerManager.removeTimer(data.user_id);
+                console.log(`사용자 ${data.user_name} 타이머 완전 제거됨`);
+              }
+              
+              // DOM에서 해당 유저 요소 완전 제거
+              const userTimers = document.querySelectorAll('.user-timer');
+              userTimers.forEach(element => {
+                const userName = element.querySelector('.user-name').textContent;
+                if (userName === data.user_name) {
+                  element.remove();
+                  console.log(`사용자 ${data.user_name} UI 요소 제거됨`);
+                }
+              });
+              
+              // 완전 제거 로그
+              if (data.final_removal) {
+                console.log(`사용자 ${data.user_name}이 방에서 완전히 퇴장했습니다.`);
+              }
+              
+              // 리더보드 업데이트
+              updateLeaderboard();
+              break;
+
+            case 'presence_broadcast':
+              // 유저 presence 상태 업데이트 (연결된 사용자만)
+              console.log("Presence 업데이트:", data);
+              if (window.timerManager) {
+                const timer = window.timerManager.getTimer(data.user_id);
+                if (timer) {
+                    // 서버에서 받은 정확한 시간으로 업데이트
+                    timer.seconds = data.timer || 0;
+                    timer.updateTimerDisplay();
+                    
+                    console.log(`사용자 ID ${data.user_id}의 시간 업데이트: ${timer.seconds}초, Present: ${data.present}`);
+                    
+                    if (data.present) {
+                        timer.resumeTimer();
+                    } else {
+                        timer.pauseTimer();
+                    }
+                } else {
+                    console.warn(`사용자 ID ${data.user_id}의 타이머를 찾을 수 없습니다.`);
+                }
+              }
+              break;
+
+            case 'fuck_broadcast':
+              // fuck 이벤트 처리
+              console.log(`${data.user_name}님이 fuck 이벤트를 발생시켰습니다!`);
+              
+              // JSConfetti를 사용한 다양한 confetti 효과
+              jsConfetti.addConfetti();
+              
+              setTimeout(() => {
+                jsConfetti.addConfetti({
+                  emojis: ['😈', '💥', '🔥', '⚡', '💢', '🤬'],
+                  emojiSize: 50,
+                  confettiNumber: 40,
+                });
+              }, 300);
+              
+              // 개빡치는 fuck.png 애니메이션 실행
+              createCrazyFuckAnimation();
+              
+              // 임시 알림 메시지 표시
+              showTemporaryNotification(`${data.user_name}님이 놀리기를 했습니다! 🔥💥`);
+              break;
+          }
+        };
+
+        socket.onerror = function(error) {
+          console.error("WebSocket 오류:", error);
+          document.getElementById('status').textContent = '연결 오류';
+        };
+
+        socket.onclose = function(event) {
+          console.log("WebSocket 연결 종료:", event.code, event.reason);
+          document.getElementById('status').textContent = '연결 끊김';
+        };
+
+        // confetti 버튼 클릭 이벤트도 JSConfetti 활용
+        confettiButton.addEventListener('click', function() {
+          // 클릭 시 즉시 confetti 효과
+          jsConfetti.addConfetti({
+            emojis: ['😈', '💥', '🔥', '⚡'],
+            emojiSize: 30,
+            confettiNumber: 50,
+          });
+          
+          // 서버로 fuck 이벤트 전송
+          if (window.socket && window.socket.readyState === WebSocket.OPEN) {
+            window.socket.send(JSON.stringify({
+              type: 'fuck',
+              user_id: window.userId,
+              user_name: window.userName
+            }));
+            console.log('Fuck 이벤트 전송됨');
+          }
+        });
+
+        // 개빡치는 fuck.png 애니메이션 함수
+        function createCrazyFuckAnimation() {
+          // 여러 개의 이미지를 동시에 생성
+          for (let i = 0; i < 9; i++) {
+            setTimeout(() => {
+              const fuckImg = document.createElement('img');
+              fuckImg.src = '/static/fuck.png';
+              fuckImg.className = 'crazy-fuck-animation';
+              
+              // 랜덤 시작 위치
+              const startX = Math.random() * (window.innerWidth - 300); // 이미지 크기 고려해서 조정
+              const startY = Math.random() * (window.innerHeight - 300);
+              
+              fuckImg.style.cssText = `
+                position: fixed;
+                left: ${startX}px;
+                top: ${startY}px;
+                width: 500px;
+                height: 500px;
+                z-index: 10000;
+                pointer-events: none;
+                animation: 
+                  crazyRotate 0.08s infinite linear,
+                  crazySizeChange 0.4s infinite ease-in-out,
+                  crazyBounce 2.5s infinite ease-in-out,
+                  crazyShake 0.03s infinite,
+                  crazyColorChange 0.15s infinite,
+                  crazyFadeOut 4s ease-in-out forwards;
+                animation-delay: ${i * 0.15}s;
+              `;
+              
+              document.body.appendChild(fuckImg);
+              
+              // 4초 후 제거 (더 오래 보이도록)
+              setTimeout(() => {
+                if (fuckImg.parentNode) {
+                  fuckImg.remove();
+                }
+              }, 4000);
+            }, i * 150);
+          }
+        }
+
+        // CSS 애니메이션 스타일 추가 (기존 notification-styles와 함께)
+        if (!document.querySelector('#crazy-animation-styles')) {
+          const style = document.createElement('style');
+          style.id = 'crazy-animation-styles';
+          style.textContent = `
+            @keyframes crazyRotate {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+            
+            @keyframes crazySizeChange {
+              0%, 100% { transform: scale(1); }
+              20% { transform: scale(2.5); }
+              40% { transform: scale(0.3); }
+              60% { transform: scale(3); }
+              80% { transform: scale(0.5); }
+            }
+            
+            @keyframes crazyBounce {
+              0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0) translateX(0);
+              }
+              10% {
+                transform: translateY(-80px) translateX(60px);
+              }
+              30% {
+                transform: translateY(100px) translateX(-90px);
+              }
+              60% {
+                transform: translateY(-60px) translateX(120px);
+              }
+              90% {
+                transform: translateY(40px) translateX(-80px);
+              }
+            }
+            
+            @keyframes crazyShake {
+              0%, 100% { transform: translateX(0) translateY(0); }
+              25% { transform: translateX(-10px) translateY(-8px); }
+              50% { transform: translateX(12px) translateY(10px); }
+              75% { transform: translateX(-8px) translateY(6px); }
+            }
+            
+            @keyframes crazyColorChange {
+              0% { filter: hue-rotate(0deg) saturate(1); }
+              25% { filter: hue-rotate(90deg) saturate(2); }
+              50% { filter: hue-rotate(180deg) saturate(1.5); }
+              75% { filter: hue-rotate(270deg) saturate(2.5); }
+              100% { filter: hue-rotate(360deg) saturate(1); }
+            }
+            
+            @keyframes crazyFadeOut {
+              0% { opacity: 1; }
+              70% { opacity: 1; }
+              100% { opacity: 0; }
+            }
+            
+            @keyframes bounceIn {
+              0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.3);
+              }
+              50% {
+                transform: translate(-50%, -50%) scale(1.05);
+              }
+              70% {
+                transform: translate(-50%, -50%) scale(0.9);
+              }
+              100% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+              }
+            }
+            @keyframes fadeOut {
+              to {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.8);
+              }
+            }
+          `;
+          document.head.appendChild(style);
+        }
+
+        // 임시 알림 메시지 함수 (더 빡친 스타일로 업데이트)
+        function showTemporaryNotification(message) {
+          // 기존 알림이 있다면 제거
+          const existingNotification = document.querySelector('.temporary-notification');
+          if (existingNotification) {
+            existingNotification.remove();
+          }
+          
+          // 새 알림 요소 생성
+          const notification = document.createElement('div');
+          notification.className = 'temporary-notification';
+          notification.textContent = message;
+          notification.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #ff0000, #ff4500, #ff6600);
+            color: white;
+            padding: 25px 40px;
+            border-radius: 20px;
+            font-size: 32px;
+            font-weight: 900;
+            box-shadow: 0 15px 40px rgba(255,0,0,0.5);
+            z-index: 3456789;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            border: 3px solid #ffff00;
+            animation: 
+              bounceIn 0.6s ease-out,
+              crazyShake 0.1s infinite,
+              crazyColorChange 0.3s infinite,
+              fadeOut 0.5s ease-in 2.5s forwards;
+          `;
+          
+          document.body.appendChild(notification);
+          
+          // 3초 후 자동 제거
+          setTimeout(() => {
+            if (notification.parentNode) {
+              notification.remove();
+            }
+          }, 3000);
+        }
+      }
+    </script>
+  </body>
+</html>
