@@ -49,6 +49,7 @@
         border: none;
         padding: 12px 30px;
         border-radius: 999px;
+
         cursor: pointer;
         font-size: 16px;
         transition: all 0.3s ease;
@@ -56,19 +57,23 @@
 
       .quit:hover {
         background-color: #e53935;
+
         transform: translateY(-2px);
       }
 
       .room-main {
         width: 100%;
         height: calc(100vh - 80px);
+
         display: flex;
       }
 
       .room-left {
         width: calc(100% - 450px);
         height: 100%;
+
         padding: 30px;
+
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -77,16 +82,21 @@
 
       .cam {
         background: linear-gradient(135deg, var(--primary-color), #7c4dff);
+
         width: 300px;
         aspect-ratio: 12/9;
+
         border-radius: 18px;
       }
 
       #status {
         font-size: 18px;
         font-weight: 500;
+
         padding: 8px 16px;
+
         border-radius: 20px;
+
         background: white;
         box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         color: var(--text-dark);
@@ -95,6 +105,7 @@
       .user-list {
         width: 100%;
         max-width: 500px;
+
         display: flex;
         flex-direction: column;
         gap: 12px;
@@ -104,27 +115,35 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
+
         padding: 16px 20px;
+
         background: white;
+
         border-radius: 15px;
+
         box-shadow: 0 4px 15px rgba(0,0,0,0.08);
         transition: all 0.3s ease;
       }
 
       .user-timer.active {
         background: linear-gradient(135deg, #fff, #f8f6ff);
+
         transform: translateX(5px);
       }
 
       .user-timer.inactive {
         background: #f5f5f5;
+
         opacity: 0.7;
       }
 
       .user-name {
         font-size: 16px;
         font-weight: 500;
+
         color: var(--text-dark);
+
         display: flex;
         align-items: center;
         gap: 8px;
@@ -132,6 +151,7 @@
 
       .user-name::before {
         content: "👤";
+
         font-size: 14px;
       }
 
@@ -211,9 +231,13 @@
       .leaderboard-title {
         font-size: 22px;
         font-weight: 600;
+
         color: var(--text-dark);
+
         margin-bottom: 20px;
+
         text-align: center;
+
         display: flex;
         align-items: center;
         justify-content: center;
@@ -228,9 +252,11 @@
       .room-leaderboard-list {
         width: 100%;
         height: 100%;
+
         display: flex;
         flex-direction: column;
         gap: 12px;
+
         overflow-y: auto;
       }
 
@@ -239,8 +265,11 @@
         align-items: center;
         justify-content: space-between;
         padding: 16px;
+
         background: var(--background-light);
+
         border-radius: 12px;
+
         transition: all 0.3s ease;
         border-left: 4px solid transparent;
       }
@@ -275,11 +304,15 @@
         display: flex;
         align-items: center;
         justify-content: center;
+
         width: 30px;
         height: 30px;
+
         border-radius: 50%;
+
         background: var(--primary-color);
         color: white;
+
         font-weight: 600;
         font-size: 14px;
       }
@@ -358,8 +391,11 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
+
         height: 100%;
+
         color: var(--text-light);
+
         font-size: 16px;
       }
 
@@ -368,6 +404,73 @@
         font-size: 48px;
         margin-bottom: 16px;
         opacity: 0.5;
+      }
+
+      .prank-button {
+        display: none;
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+
+        background: linear-gradient(135deg, #ff4757, #ff3742);
+
+        color: white;
+
+        border: none;
+
+        padding: 15px 25px;
+
+        border-radius: 50px;
+
+        font-size: 18px;
+        font-weight: 600;
+
+        cursor: pointer;
+
+        box-shadow: 0 8px 25px rgba(255, 71, 87, 0.4);
+        
+        transition: all 0.3s ease;
+        z-index: 1000;
+        animation: pulse 2s infinite;
+      }
+
+      .prank-button:hover {
+        background: linear-gradient(135deg, #ff3742, #ff2f3a);
+        transform: translateY(-3px);
+        box-shadow: 0 12px 35px rgba(255, 71, 87, 0.6);
+      }
+
+      .prank-button:active {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(255, 71, 87, 0.5);
+      }
+
+      @keyframes pulse {
+        0% {
+          box-shadow: 0 8px 25px rgba(255, 71, 87, 0.4);
+        }
+        50% {
+          box-shadow: 0 8px 25px rgba(255, 71, 87, 0.8);
+        }
+        100% {
+          box-shadow: 0 8px 25px rgba(255, 71, 87, 0.4);
+        }
+      }
+
+      .prank-button.show {
+        display: block;
+        animation: slideInFromRight 0.5s ease-out, pulse 2s infinite 0.5s;
+      }
+
+      @keyframes slideInFromRight {
+        0% {
+          transform: translateX(100px);
+          opacity: 0;
+        }
+        100% {
+          transform: translateX(0);
+          opacity: 1;
+        }
       }
     </style>
   </head>
@@ -384,7 +487,7 @@
         <video class="cam" id="cam" autoplay playsinline></video>
         <span id="status">준비중</span>
         <div class="user-list" id="user-list">
-          <!-- 유저 타이머들이 여기에 동적으로 추가됩니다 -->
+          <!-- 유저 타이머들이 여기에 동적으로 추가댐ㅇㅇ -->
         </div>
       </div>
       <div class="room-right">
@@ -401,8 +504,8 @@
           </div>
         </div>
       </div>
-      <button>놀리기</button>
     </main>
+    <button class="prank-button" id="prank-button">🔥 다른 사람 놀리기ㅋ</button>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.16.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
     <script src="https://cdn.jsdelivr.net/npm/js-confetti@latest/dist/js-confetti.browser.js"></script>
@@ -410,32 +513,27 @@
     <script src="{% static 'js/webcam.js' %}"></script>
     <script>
       const jsConfetti = new JSConfetti()
-      // 유저 정보 확인
+
       const userId = "{{ user.id|default:'' }}";
       const userName = "{{ user.username|default:'' }}";
       const roomId = "{{ room.id|default:'' }}";
       
-      // 전역 변수로 설정
       window.userId = userId;
       window.userName = userName;
       window.roomId = roomId;
 
       const confettiButton = document.querySelector('button');
 
-      // 리더보드 업데이트 함수
       function updateLeaderboard() {
         if (!window.timerManager) return;
         
         const leaderboardList = document.getElementById('leaderboard-list');
         const timers = window.timerManager.getAllTimers();
         
-        // 현재 사용자의 타이머 정보 추가
         const allTimers = [...timers];
         
-        // 현재 사용자가 타이머 목록에 없으면 추가
         const currentUserExists = timers.some(timer => timer.userId === window.userId);
         if (!currentUserExists && window.userId && window.userName) {
-          // 현재 사용자의 시간을 메인 타이머에서 가져오기
           const mainTimerElement = document.getElementById('timer');
           const mainTimerText = mainTimerElement ? mainTimerElement.textContent : '00:00';
           const [minutes, seconds] = mainTimerText.split(':').map(Number);
@@ -448,7 +546,6 @@
             isCurrentUser: true
           });
         } else {
-          // 기존 타이머에 현재 사용자 표시 추가
           allTimers.forEach(timer => {
             timer.isCurrentUser = timer.userId === window.userId;
           });
@@ -459,7 +556,6 @@
           return;
         }
         
-        // 시간 순으로 정렬 (내림차순)
         const sortedTimers = allTimers.sort((a, b) => b.seconds - a.seconds);
         
         leaderboardList.innerHTML = '';
@@ -472,7 +568,6 @@
           const leaderboardItem = document.createElement('div');
           const isCurrentUser = timer.isCurrentUser || timer.userId === window.userId;
           
-          // 현재 사용자와 다른 사용자에 따라 다른 클래스 적용
           let itemClass = `leaderboard-item rank-${rank <= 3 ? rank : 'other'}`;
           if (isCurrentUser) {
             itemClass += ' current-user';
@@ -492,7 +587,6 @@
         });
       }
 
-      // 리더보드 주기적 업데이트
       setInterval(updateLeaderboard, 1000);
 
       console.log("User Info:", { userId, userName, roomId });
@@ -502,10 +596,9 @@
         alert("로그인이 필요하거나 방 정보가 올바르지 않습니다.");
         window.location.href = "/";
       } else {
-        // WebSocket 연결
         const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
         const wsUrl = `${wsScheme}://${window.location.host}/ws/room/${roomId}/?user_id=${userId}&user_name=${encodeURIComponent(userName)}`;
-        
+        // 아아아미친웹소케세ㅔ
         console.log("WebSocket URL:", wsUrl);
         
         const socket = new WebSocket(wsUrl);
@@ -522,10 +615,8 @@
 
           switch(data.type) {
             case 'user_list':
-              // 초기 유저 리스트 처리
               console.log("유저 목록 수신:", data.users);
               
-              // 기존 유저 리스트 초기화
               const userList = document.getElementById('user-list');
               userList.innerHTML = '';
               
@@ -539,7 +630,6 @@
                   `;
                   userList.appendChild(timerElement);
                   
-                  // TimerManager를 사용하여 타이머 추가
                   if (window.timerManager) {
                     const timer = window.timerManager.addTimer(
                       userId,
@@ -548,13 +638,11 @@
                       timerElement
                     );
                     
-                    // 기존 사용자의 누적 시간 설정
                     timer.seconds = userData.timer || 0;
                     timer.updateTimerDisplay();
                     
                     console.log(`사용자 ${userData.user_name}의 시간 설정: ${timer.seconds}초`);
                     
-                    // 상태에 따라 타이머 시작/중지
                     if (userData.present) {
                       timer.resumeTimer();
                       console.log(`사용자 ${userData.user_name} 타이머 재개`);
@@ -565,12 +653,10 @@
                 }
               });
               
-              // 리더보드 업데이트
               updateLeaderboard();
               break;
 
             case 'user_joined':
-              // 새 유저 입장 처리
               console.log("새 유저 입장:", data);
               const timerElement = document.createElement('div');
               timerElement.className = 'user-timer';
@@ -589,16 +675,13 @@
                 );
               }
               
-              // 리더보드 업데이트
               updateLeaderboard();
               break;
 
             case 'user_left':
-              // 유저 완전 퇴장 처리
               console.log("유저 퇴장:", data);
               
               if (window.timerManager) {
-                // TimerManager에서 완전히 제거
                 window.timerManager.removeTimer(data.user_id);
                 console.log(`사용자 ${data.user_name} 타이머 완전 제거됨`);
               }
@@ -623,12 +706,10 @@
               break;
 
             case 'presence_broadcast':
-              // 유저 presence 상태 업데이트 (연결된 사용자만)
-              console.log("Presence 업데이트:", data);
+              console.log("Presence:", data);
               if (window.timerManager) {
                 const timer = window.timerManager.getTimer(data.user_id);
                 if (timer) {
-                    // 서버에서 받은 정확한 시간으로 업데이트
                     timer.seconds = data.timer || 0;
                     timer.updateTimerDisplay();
                     
@@ -648,8 +729,7 @@
             case 'fuck_broadcast':
               // fuck 이벤트 처리
               console.log(`${data.user_name}님이 fuck 이벤트를 발생시켰습니다!`);
-              
-              // JSConfetti를 사용한 다양한 confetti 효과
+            
               jsConfetti.addConfetti();
               
               setTimeout(() => {
@@ -660,10 +740,9 @@
                 });
               }, 300);
               
-              // 개빡치는 fuck.png 애니메이션 실행
+              // 개빡치는 fuck 애니메이션 실행
               createCrazyFuckAnimation();
               
-              // 임시 알림 메시지 표시
               showTemporaryNotification(`${data.user_name}님이 놀리기를 했습니다! 🔥💥`);
               break;
           }
@@ -679,16 +758,31 @@
           document.getElementById('status').textContent = '연결 끊김';
         };
 
-        // confetti 버튼 클릭 이벤트도 JSConfetti 활용
+        function checkTimerForPrankButton() {
+          const timerElement = document.getElementById('timer');
+          if (!timerElement) return;
+          
+          const timerText = timerElement.textContent;
+          const [minutes, seconds] = timerText.split(':').map(Number);
+          const totalSeconds = (minutes * 60) + seconds;
+          
+          const prankButton = document.getElementById('prank-button');
+          if (totalSeconds >= 60 && !prankButton.classList.contains('show')) {
+            prankButton.classList.add('show');
+            console.log('1분이 지나서 놀리기 버튼이 활성화되었습니다!');
+          }
+        }
+
+        setInterval(checkTimerForPrankButton, 1000);
+
+        const confettiButton = document.getElementById('prank-button');
         confettiButton.addEventListener('click', function() {
-          // 클릭 시 즉시 confetti 효과
           jsConfetti.addConfetti({
             emojis: ['😈', '💥', '🔥', '⚡'],
             emojiSize: 30,
             confettiNumber: 50,
           });
           
-          // 서버로 fuck 이벤트 전송
           if (window.socket && window.socket.readyState === WebSocket.OPEN) {
             window.socket.send(JSON.stringify({
               type: 'fuck',
@@ -699,17 +793,14 @@
           }
         });
 
-        // 개빡치는 fuck.png 애니메이션 함수
         function createCrazyFuckAnimation() {
-          // 여러 개의 이미지를 동시에 생성
           for (let i = 0; i < 9; i++) {
             setTimeout(() => {
               const fuckImg = document.createElement('img');
               fuckImg.src = '/static/fuck.png';
               fuckImg.className = 'crazy-fuck-animation';
               
-              // 랜덤 시작 위치
-              const startX = Math.random() * (window.innerWidth - 300); // 이미지 크기 고려해서 조정
+              const startX = Math.random() * (window.innerWidth - 300);
               const startY = Math.random() * (window.innerHeight - 300);
               
               fuckImg.style.cssText = `
@@ -731,18 +822,16 @@
               `;
               
               document.body.appendChild(fuckImg);
-              
-              // 4초 후 제거 (더 오래 보이도록)
+
               setTimeout(() => {
                 if (fuckImg.parentNode) {
                   fuckImg.remove();
                 }
               }, 4000);
             }, i * 150);
-          }
+          } 
         }
 
-        // CSS 애니메이션 스타일 추가 (기존 notification-styles와 함께)
         if (!document.querySelector('#crazy-animation-styles')) {
           const style = document.createElement('style');
           style.id = 'crazy-animation-styles';
@@ -825,15 +914,12 @@
           document.head.appendChild(style);
         }
 
-        // 임시 알림 메시지 함수 (더 빡친 스타일로 업데이트)
         function showTemporaryNotification(message) {
-          // 기존 알림이 있다면 제거
           const existingNotification = document.querySelector('.temporary-notification');
           if (existingNotification) {
             existingNotification.remove();
           }
           
-          // 새 알림 요소 생성
           const notification = document.createElement('div');
           notification.className = 'temporary-notification';
           notification.textContent = message;
@@ -861,7 +947,6 @@
           
           document.body.appendChild(notification);
           
-          // 3초 후 자동 제거
           setTimeout(() => {
             if (notification.parentNode) {
               notification.remove();
